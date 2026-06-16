@@ -1,0 +1,152 @@
+:root {
+            --academic-blue: #0f2c59;
+            --academic-light-bg: #f8f9fa;
+            --academic-card-bg: #ffffff;
+            --academic-text: #212529;
+            --academic-muted: #6c757d;
+            --academic-border: #ced4da;
+            --academic-alert: #dc3545;
+            --academic-success: #198754;
+            --academic-focus: #0d6efd;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--academic-light-bg); 
+            color: var(--academic-text); 
+            padding: 20px 10px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .card { 
+            background: var(--academic-card-bg); 
+            padding: 40px 30px; 
+            max-width: 650px; 
+            width: 100%; 
+            border: 1px solid var(--academic-border); 
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+        }
+
+        h2 { 
+            color: var(--academic-blue); 
+            margin-top: 0; 
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--academic-blue);
+            padding-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--academic-muted);
+            margin-bottom: 30px;
+        }
+
+        label { 
+            display: block; 
+            margin: 24px 0 8px; 
+            font-weight: 600; 
+            font-size: 1.1rem;
+            color: var(--academic-text);
+        }
+
+        select, input[type="file"] { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--academic-card-bg); 
+            border: 1px solid var(--academic-border); 
+            color: var(--academic-text); 
+            border-radius: 4px;
+            box-sizing: border-box; 
+            margin-bottom: 6px; 
+            font-family: inherit;
+            outline: none;
+            font-size: 1.1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus, input[type="file"]:focus {
+            border-color: var(--academic-focus);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        }
+
+        select:disabled {
+            background-color: #e9ecef;
+            color: var(--academic-muted);
+            cursor: not-allowed;
+        }
+
+        .file-info { 
+            font-size: 0.95rem; 
+            color: var(--academic-muted); 
+            margin-top: 6px; 
+            margin-bottom: 20px; 
+        }
+
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            background: var(--academic-blue); 
+            border: none; 
+            border-radius: 4px;
+            color: #ffffff; 
+            font-weight: 600; 
+            margin-top: 30px; 
+            cursor: pointer; 
+            font-size: 1.2rem; 
+            letter-spacing: 0.5px;
+            font-family: inherit;
+            transition: background-color 0.2s;
+        }
+
+        button:hover { 
+            background: #0a2246;
+        }
+
+        button:disabled { 
+            background: #a5b5c9; 
+            color: #ffffff;
+            cursor: not-allowed; 
+        }
+
+        #status { 
+            text-align: center; 
+            margin-top: 25px; 
+            font-weight: 600; 
+            font-size: 1.1rem;
+            line-height: 1.5;
+            white-space: pre-line; 
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .card {
+                padding: 25px 20px;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            label {
+                font-size: 1rem;
+            }
+            select, input[type="file"], button, #status {
+                font-size: 1rem;
+            }
+        }

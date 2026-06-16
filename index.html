@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA DE ENTREGA ACADÉMICA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="card">
+    <h2>ENTREGA DE TRABAJOS</h2>
+    <p>Selecciona tu grupo y nombre, luego elige el trabajo correspondiente y sube los archivos para que los reciba el Profe Martin.</p>
+    
+    <form id="certificadosForm">
+        <label>Grupo:</label>
+        <select id="grupo" required>
+            <option value="">-- SELECCIONAR GRUPO --</option>
+        </select>
+
+        <label>Alumno:</label>
+        <select id="alumno" required disabled>
+            <option value="">-- SELECCIONAR ALUMNO --</option>
+        </select>
+
+        <label>Trabajo a entregar:</label>
+        <select id="trabajo" required disabled>
+            <option value="">-- SELECCIONAR TRABAJO --</option>
+        </select>
+
+        <label>Cargar Archivos de Datos:</label>
+        <input type="file" id="archivos" accept=".pdf, image/*, video/*, .doc, .docx, .xls, .xlsx, .ppt, .pptx" multiple required>
+        <div class="file-info">Máximo permitido: 10 archivos por entrega.</div>
+
+        <button type="submit" id="btnEnviar">ENVIAR TRABAJO</button>
+    </form>
+    <div id="status"></div>
+</div>
+
+<!-- Scripts dinámicos cargados desde la misma ruta -->
+<script src="trabajos.js"></script>
+<script src="grupos.js"></script>
+
+<script>
+    // Marcador de posición para Apps Script
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-yWsDtslrAvxTyIVy70XxiFGNqans_fyL7iZ2fXyDcqLOTsVDNoz0i_qSishgawQobQ/exec";
+
+    const grupoSelect = document.getElementById('grupo');
+    const alumnoSelect = document.getElementById('alumno');
+    const trabajoSelect = document.getElementById('trabajo');
+
+    // Inicialización y carga de datos dinámicos
+    window.addEventListener('DOMContentLoaded', () => {
+        // Carga de trabajos común
+        if (typeof listaTrabajos !== 'undefined' && Array.isArray(listaTrabajos)) {
+            listaTrabajos.forEach(trabajo => {
+                const option = document.createElement('option');
+                option.value = trabajo;
+                option.textContent = trabajo.toUpperCase();
+                trabajoSelect.appendChild(option);
+            });
+            trabajoSelect.disabled = false;
+        }
+
+        // Carga de grupos CORREGIDO: Usar 'gruposEstudiantes' y cambiar 'group' por 'grupo'
+        if (typeof gruposEstudiantes !== 'undefined' && typeof gruposEstudiantes === 'object') {
+            Object.keys(gruposEstudiantes).forEach(grupo => {
+                const option = document.createElement('option');
+                option.value = grupo; // Corregido: antes decía 'group'
+                option.textContent = grupo.toUpperCase();
+                grupoSelect.appendChild(option);
+            });
+        }
+    });
+
+    // Control de cambio de grupo para actualizar alumnos
+    grupoSelect.addEventListener('change', () => {
+        const grupoSeleccionado = grupoSelect.value;
+        alumnoSelect.innerHTML = '<option value="">-- SELECCIONAR ALUMNO --</option>';
+        
+        // CORREGIDO: Usar 'gruposEstudiantes' en lugar de 'estructuraGrupos'
+        if (grupoSeleccionado && typeof gruposEstudiantes !== 'undefined' && gruposEstudiantes[grupoSeleccionado]) {
+            gruposEstudiantes[grupoSeleccionado].forEach(alumno => {
+                const option = document.createElement('option');
+                option.value = alumno;
+                option.textContent = alumno.toUpperCase();
+                alumnoSelect.appendChild(option);
+            });
+            alumnoSelect.disabled = false;
+        } else {
+            alumnoSelect.disabled = true;
+        }
+    });
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+document.getElementById('certificadosForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('btnEnviar');
+        const status = document.getElementById('status');
+        const fileInput = document.getElementById('archivos');
+        const grupo = grupoSelect.value;
+        const alumno = alumnoSelect.value;
+        const trabajo = trabajoSelect.value;
+        
+        if (fileInput.files.length > 10) {
+            status.style.color = "var(--academic-alert)";
+            status.style.backgroundColor = "#f8d7da";
+            status.style.borderColor = "#f5c2c7";
+            status.innerText = `ERROR: Has seleccionado ${fileInput.files.length} archivos.\nEl límite estricto es de 10 archivos.`;
+            return;
+        }
+
+        // BLOQUEO: Deshabilitar interacciones
+        grupoSelect.disabled = true;
+        alumnoSelect.disabled = true;
+        trabajoSelect.disabled = true;
+        fileInput.disabled = true;
+        btn.disabled = true;
+
+        // MENSAJE LLAMATIVO: Fondo amarillo de advertencia, texto oscuro y borde definido
+        status.style.color = "#664d03";
+        status.style.backgroundColor = "#fff3cd";
+        status.style.borderColor = "#ffecb5";
+        status.innerText = "Se está enviando tu trabajo, espera un poco, no cierres la pagina";
+
+        try {
+            const listaPromesas = [];
+            
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                const promesaArchivo = toBase64(file).then(base64Data => {
+                    return {
+                        nombreArchivo: file.name,
+                        datosBase64: base64Data
+                    };
+                });
+                listaPromesas.push(promesaArchivo);
+            }
+
+            const archivosProcesados = await Promise.all(listaPromesas);
+
+            const payload = {
+                grupo: grupo,
+                alumno: alumno,
+                trabajo: trabajo,
+                archivos: archivosProcesados
+            };
+
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.result === "success") {
+                // Limpieza del contenedor de estado antes de la alerta
+                status.innerText = "";
+                status.style.backgroundColor = "transparent";
+                status.style.borderColor = "transparent";
+
+                alert("TU TRABAJO FUE RECIBIDO CORRECTAMENTE");
+
+                // RESETEO SELECTIVO
+                fileInput.value = ""; 
+                trabajoSelect.value = "";
+                
+            } else {
+                throw new Error(result.error || "Error en el servidor");
+            }
+            
+        } catch (err) {
+            console.error(err);
+            // Limpieza del contenedor de estado en caso de error
+            status.innerText = "";
+            status.style.backgroundColor = "transparent";
+            status.style.borderColor = "transparent";
+
+            alert("Algo salio mal, intenta de nuevo por favor");
+        } finally {
+            // DESBLOQUEO SELECTIVO
+            grupoSelect.disabled = false;
+            alumnoSelect.disabled = false;
+            trabajoSelect.disabled = false;
+            fileInput.disabled = false;
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
